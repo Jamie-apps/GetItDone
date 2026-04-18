@@ -1,147 +1,197 @@
-import { View, Text, StyleSheet, Dimensions, Pressable } from "react-native";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-} from "react-native-reanimated";
-import { useEffect } from "react";
-import { LinearGradient } from "expo-linear-gradient";
-const { width, height } = Dimensions.get("window");
-const COLORS = [
-  "#7dd3fc",
-  "#a78bfa",
-  "#f9a8d4",
-  "#fde68a",
-  "#86efac",
-];
+import { View, Text, StyleSheet, ScrollView } from "react-native";
+import {AnimatedCircularProgress} from 'react-native-circular-progress';
 
-//LIGHT BLOBS
-interface LightBlobProps {
-  color: string;
-  size: number;
-  delay: number;
-}
-function LightBlob({ color, size, delay }: LightBlobProps) {
-  const x = useSharedValue(Math.random() * width);
-  const y = useSharedValue(Math.random() * height);
-  const opacity = useSharedValue(0.5);
-  useEffect(() => {
-    const animate = () => {
-      x.value = withTiming(Math.random() * width, {
-        duration: 8000 + Math.random() * 6000,
-      });
-      y.value = withTiming(Math.random() * height, {
-        duration: 8000 + Math.random() * 6000,
-      });
-      // 🔥 subtle flicker
-      opacity.value = withTiming(Math.random() * 0.2 + 0.4, {
-        duration: 1500 + Math.random() * 1500,
-      });
-      setTimeout(animate, 1500 + Math.random() * 2000);
-    };
-    setTimeout(animate, delay);
-  }, []);
-  const style = useAnimatedStyle(() => ({
-    position: "absolute",
-    left: width / 2 - size / 2,
-    top: height / 2 - size / 2,
-    transform: [
-      { translateX: x.value - width / 2 },
-      { translateY: y.value - height / 2 },
-    ],
-    opacity: opacity.value,
-  }));
+export default function HomeScreen() {
   return (
-    <Animated.View style={style}>
-      <View
-        style={[
-          styles.blob,
-          {
-            backgroundColor: color,
-            width: size,
-            height: size,
-          },
-        ]}
-      />
-    </Animated.View>
-  );
-}
+    <ScrollView style={styles.container}>
 
-//GLOW BUTTON
-function GlowButton({ label }: { label: string }) {
-  const translate = useSharedValue(-300); // start far left
-  const opacity = useSharedValue(0);
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translate.value }],
-    opacity: opacity.value,
-  }));
-  const handlePress = () => {
-    translate.value = -300;
-    opacity.value = 1;
-    //full sweep across button
-    translate.value = withTiming(300, { duration: 800 });
-    // fade out AFTER it fully passes
-    setTimeout(() => {
-      opacity.value = withTiming(0, { duration: 300 });
-    }, 700);
-  };
-  return (
-    <Pressable onPress={handlePress}>
-      <View style={styles.button}>
-        {/*Moving gradient*/}
-        <Animated.View style={[styles.gradientOverlay, animatedStyle]}>
-          <LinearGradient
-            colors={["#7dd3fc", "#a78bfa", "#f9a8d4"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }} // horizontal flow
-            style={styles.gradient}
-          />
-        </Animated.View>
-        <Text style={styles.buttonText}>{label}</Text>
+      {/* 🔹 Header */}
+      <View style={styles.header}>
+        <Text style={styles.title}>Hello, Jamie 👋</Text>
+        <Text style={styles.subtitle}>What are you tracking today?</Text>
       </View>
-    </Pressable>
-  );
-}
 
-// 🏠 HOME SCREEN
-export default function Home() {
-  return (
-    <View style={styles.container}>
-      {/*LIGHTS*/}
-      <LightBlob color="#7dd3fc" size={500} delay={0} />
-      <LightBlob color="#a78bfa" size={550} delay={1000} />
-      <LightBlob color="#f9a8d4" size={350} delay={500} />
-      <LightBlob color="#fde68a" size={400} delay={1500} />
-      <LightBlob color="#86efac" size={250} delay={2000} />
-      {/*Fog layer*/}
-      <View style={styles.fogLayer} />
-      {/*Overlay*/}
-      <View style={styles.overlay} />
-      {/*Foreground*/}
-      <View style={styles.foreground}>
-        <Text style={styles.title}>GetItDone</Text>
-        <Text style={styles.subtitle}>
-          Build consistency. Track your goals.
-        </Text>
-        <View style={{ height: 30 }} />
-        <GlowButton label="Start" />
-        <GlowButton label="Quit" />
+      {/* 🔹 Main Progress Card */}
+      <View style={styles.card}>
+
+      <Text style={styles.cardTitle}>Daily Progress</Text>
+
+      <View style={{ alignItems: "center", marginVertical: 20 }}>
+        <AnimatedCircularProgress
+          size={160}
+          width={12}
+          fill={80} // dynamic later
+          tintColor="#7dd3fc"
+          backgroundColor="rgba(255,255,255,0.1)"
+          rotation={0}
+          lineCap="round"
+        >
+          {(fill: number) => (
+            <Text style={styles.progressText}>
+              {Math.round(fill)}%
+            </Text>
+          )}
+        </AnimatedCircularProgress>
       </View>
+
+      <Text style={styles.streak}>🔥 5 day streak</Text>
+
     </View>
+
+      {/* 🔹 Goals List */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Today’s Goals</Text>
+
+        <View style={styles.goalItem}>
+          <Text style={styles.goalText}>✔ Workout</Text>
+        </View>
+
+        <View style={styles.goalItem}>
+          <Text style={styles.goalText}>✔ Study</Text>
+        </View>
+
+        <View style={styles.goalItem}>
+          <Text style={styles.goalText}>✖ Drink Water</Text>
+        </View>
+
+      </View>
+      <View style={styles.statsRow}>
+
+  <View style={styles.statBox}>
+    <Text style={styles.statNumber}>5</Text>
+    <Text style={styles.statLabel}>Goals</Text>
+  </View>
+
+  <View style={styles.statBox}>
+    <Text style={styles.statNumber}>4</Text>
+    <Text style={styles.statLabel}>Completed</Text>
+  </View>
+
+  <View style={styles.statBox}>
+    <Text style={styles.statNumber}>80%</Text>
+    <Text style={styles.statLabel}>Rate</Text>
+  </View>
+
+</View>
+
+    </ScrollView>
   );
 }
 
-//STYLES
 const styles = StyleSheet.create({
-  container: {flex: 1, backgroundColor: "#050505", justifyContent: "center", alignItems: "center", overflow: "hidden"},
-  blob: {position: "absolute", borderRadius: 999, opacity: 0.65, shadowColor: "#fff", shadowOpacity: 0.6, shadowRadius: 140, elevation: 100},
-  fogLayer: {...StyleSheet.absoluteFillObject, backgroundColor: "rgba(255,255,255,0.03)"},
-  overlay: {...StyleSheet.absoluteFillObject, backgroundColor: "rgba(5,5,5,0.65)"},
-  foreground: {position: "absolute", alignItems: "center"},
-  title: {color: "white", fontSize: 32, fontWeight: "bold", marginBottom: 10},
-  subtitle: {color: "#aaa", fontSize: 16},
-  button: {width: 200, paddingVertical: 14, borderRadius: 12, marginVertical: 8, overflow: "hidden", backgroundColor: "rgba(255,255,255,0.05)", borderWidth: 1, borderColor: "rgba(255,255,255,0.1)"},
-  buttonText: {color: "white", textAlign: "center", fontSize: 16, fontWeight: "600"},
-  gradientOverlay: {...StyleSheet.absoluteFillObject},
-  gradient: {width: "200%", height: "100%"},
+  container: {
+    flex: 1,
+    backgroundColor: "#050505",
+    padding: 20,
+  },
+
+  header: {
+    marginBottom: 20,
+  },
+
+  title: {
+    color: "white",
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+
+  subtitle: {
+    color: "#aaa",
+  },
+
+  card: {
+    backgroundColor: "rgba(255,255,255,0.05)",
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 20,
+  },
+
+  cardTitle: {
+    color: "#aaa",
+    marginBottom: 10,
+  },
+
+  progress: {
+    color: "white",
+    fontSize: 32,
+    fontWeight: "bold",
+  },
+
+  streak: {
+    color: "#7dd3fc",
+    marginTop: 5,
+  },
+
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+
+  gridItem: {
+    width: "48%",
+    padding: 20,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.05)",
+    marginBottom: 10,
+  },
+
+  gridText: {
+    color: "white",
+    fontWeight: "500",
+  },
+
+  section: {
+    marginBottom: 40,
+  },
+
+  sectionTitle: {
+    color: "white",
+    fontSize: 18,
+    marginBottom: 10,
+  },
+
+  goalItem: {
+    backgroundColor: "rgba(255,255,255,0.05)",
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+
+  goalText: {
+    color: "white",
+  },
+
+  progressText: {
+  color: "white",
+  fontSize: 28,
+  fontWeight: "bold",
+},
+
+statsRow: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  marginBottom: 25,
+},
+
+statBox: {
+  width: "30%",
+  padding: 16,
+  borderRadius: 14,
+  backgroundColor: "rgba(255,255,255,0.05)",
+  alignItems: "center",
+},
+
+statNumber: {
+  color: "white",
+  fontSize: 18,
+  fontWeight: "bold",
+},
+
+statLabel: {
+  color: "#888",
+  fontSize: 12,
+  marginTop: 4,
+},
 });
